@@ -21,10 +21,12 @@ jobs:
 
       - name: Run SSH with Service Token (no browser)
         run: |
-          export CLOUDFLARE_ACCESS_CLIENT_ID="${{ secrets.CF_ACCESS_CLIENT_ID }}"
-          export CLOUDFLARE_ACCESS_CLIENT_SECRET="${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
-          ./cloudflared access ssh \
+          export TUNNEL_SERVICE_TOKEN_ID="your-token-id"
+          export TUNNEL_SERVICE_TOKEN_SECRET="your-token-secret"   
+          cloudflared access ssh \
             --hostname ssh.sukundev.my.id \
-            --client-id "$CLOUDFLARE_ACCESS_CLIENT_ID" \
-            --client-secret "$CLOUDFLARE_ACCESS_CLIENT_SECRET" \
-            -- ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes sukundev@ssh.sukundev.my.id "echo '✅ No browser login needed!' && uptime"
+            --service-token-id "$TUNNEL_SERVICE_TOKEN_ID" \
+            --service-token-secret "$TUNNEL_SERVICE_TOKEN_SECRET" \
+            -- ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sukundev@ssh.sukundev.my.id \
+            "echo '✅ No browser login needed!' && uptime"
+
