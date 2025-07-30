@@ -17,7 +17,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
       - name: Install Cloudflared
         run: |
@@ -36,4 +35,4 @@ jobs:
 
       - name: SSH into server
         run: |
-          cloudflared access ssh --hostname ssh.sukundev.my.id -- ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa user@ssh.sukundev.my.id "echo 'connected!' && uptime"
+          cloudflared access ssh --hostname ssh.sukundev.my.id -- ssh -p 22 -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa sukundev@ssh.sukundev.my.id "echo 'connected!' && uptime"
