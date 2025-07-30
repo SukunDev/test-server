@@ -36,4 +36,4 @@ jobs:
 
       - name: SSH into server
         run: |
-          cloudflared access ssh --hostname ssh.sukundev.my.id -- ssh -i ~/.ssh/id_rsa user@ssh.sukundev.my.id "echo 'connected!' && uptime"
+          cloudflared access ssh --hostname ssh.sukundev.my.id -- ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa user@ssh.sukundev.my.id "echo 'connected!' && uptime"
