@@ -1,4 +1,4 @@
-name: Deploy via SSH with Cloudflare Tunnel
+name: Deploy via SSH through Cloudflare Tunnel
 
 on:
   push:
@@ -13,16 +13,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup SSH Private Key
+      - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-      - name: Setup SSH Known Hosts (Optional)
-        run: |
-          touch ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
 
       - name: Install Cloudflared
         run: |
@@ -30,27 +25,25 @@ jobs:
           sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
           sudo chmod +x /usr/local/bin/cloudflared
 
-      - name: Setup Cloudflared Access Credentials
+      - name: Setup Cloudflared Credentials
         run: |
           mkdir -p ~/.cloudflared
-          cat > ~/.cloudflared/credentials.json <<EOF
-          {
-            "client_id": "${{ secrets.CF_ACCESS_CLIENT_ID }}",
-            "client_secret": "${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
-          }
-          EOF
+          echo '${{ secrets.CF_TUNNEL_CREDENTIALS }}' > ~/.cloudflared/cred.json
 
-      - name: Configure SSH with Cloudflare Tunnel Proxy
+      - name: Start Cloudflared Tunnel (Background)
         run: |
-          cat > ~/.ssh/config <<EOF
-          Host ssh.sukundev.my.id
-            ProxyCommand cloudflared access ssh --hostname %h
-            IdentityFile ~/.ssh/id_rsa
-            User sukundev
-            StrictHostKeyChecking no
-          EOF
+          nohup cloudflared tunnel --cred-file ~/.cloudflared/cred.json --url ssh://localhost:22 > cloudflared.log 2>&1 &
+          sleep 5
+
+      - name: Configure SSH
+        run: |
+          echo "Host ssh.internal" >> ~/.ssh/config
+          echo "  HostName 127.0.0.1" >> ~/.ssh/config
+          echo "  Port 22" >> ~/.ssh/config
+          echo "  User sukundev" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
           chmod 600 ~/.ssh/config
 
-      - name: SSH into Server via Cloudflare Tunnel
-        run: |
-          ssh ssh.sukundev.my.id "echo 'connected via GitHub Actions!' && uptime"
+      - name: SSH into Server via Cloudflared Tunnel
+        run: ssh ssh.internal "echo 'Connected from GitHub Actions!' && uptime"
