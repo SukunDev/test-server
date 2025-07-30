@@ -19,13 +19,19 @@ jobs:
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
           chmod +x cloudflared
 
-      - name: Run SSH with Service Token (no browser)
+      - name: Run SSH through Cloudflare Tunnel
         run: |
-          export TUNNEL_SERVICE_TOKEN_ID="6d1ab3afecfff4b8e6f1a48f2d65b11d.access"
-          export TUNNEL_SERVICE_TOKEN_SECRET="3ef605b7198815a68a94f4ea1ebf21ec7c75773c3ed4f40248fe0d0e46fa7ee4"
-          ./cloudflared access ssh \
+          export TUNNEL_SERVICE_TOKEN_ID="${{ secrets.CLOUDFLARE_TOKEN_ID }}"
+          export TUNNEL_SERVICE_TOKEN_SECRET="${{ secrets.CLOUDFLARE_TOKEN_SECRET }}"
+
+          # Start tunnel in background and get local port
+          LOCAL_PORT=$(./cloudflared access ssh \
             --hostname ssh.sukundev.my.id \
             --service-token-id "$TUNNEL_SERVICE_TOKEN_ID" \
             --service-token-secret "$TUNNEL_SERVICE_TOKEN_SECRET" \
-            -- ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no sukundev@ssh.sukundev.my.id \
-            "echo '✅ No browser login needed!' && uptime"
+            --url localhost:0 2>&1 | grep -oP '(?<=localhost:)\d+')
+
+          echo "🔐 Connected to Cloudflare Tunnel at port $LOCAL_PORT"
+
+          # Now SSH via tunnel
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -p $LOCAL_PORT sukundev@localhost "echo '✅ No browser login needed!' && uptime"
