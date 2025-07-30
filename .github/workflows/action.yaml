@@ -21,8 +21,8 @@ jobs:
 
       - name: Run SSH with Service Token (no browser)
         run: |
-          export TUNNEL_SERVICE_TOKEN_ID="your-token-id"
-          export TUNNEL_SERVICE_TOKEN_SECRET="your-token-secret"   
+          export TUNNEL_SERVICE_TOKEN_ID="6d1ab3afecfff4b8e6f1a48f2d65b11d.access"
+          export TUNNEL_SERVICE_TOKEN_SECRET="3ef605b7198815a68a94f4ea1ebf21ec7c75773c3ed4f40248fe0d0e46fa7ee4"   
           cloudflared access ssh \
             --hostname ssh.sukundev.my.id \
             --service-token-id "$TUNNEL_SERVICE_TOKEN_ID" \
