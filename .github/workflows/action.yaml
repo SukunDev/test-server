@@ -47,4 +47,4 @@ jobs:
 
       - name: SSH into Server via Cloudflare Tunnel
         run: |
-          ssh ssh.sukundev.my.id "echo '✅ Connected via GitHub Actions!' && uptime"
+          ssh ssh.sukundev.my.id "echo 'Pulling Github ✅' && cd sinaupak/test-server && git fetch && git pull"
