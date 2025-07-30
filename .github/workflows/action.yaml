@@ -1,12 +1,14 @@
-name: SSH deploy via Cloudflare Tunnel
+name: SSH to Server
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  deploy:
+  ssh-connect:
     runs-on: ubuntu-latest
+
     steps:
       - name: Setup SSH key
         run: |
@@ -17,17 +19,8 @@ jobs:
       - name: Trust known host
         run: ssh-keyscan -H ssh.sukundev.my.id >> ~/.ssh/known_hosts
 
-      - name: Download cloudflared
+      - name: SSH via Cloudflare Tunnel
         run: |
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
           chmod +x cloudflared
-
-      - name: Run SSH with Service Token (no browser)
-        run: |
-          export CLOUDFLARE_ACCESS_CLIENT_ID="${{ secrets.CF_ACCESS_CLIENT_ID }}"
-          export CLOUDFLARE_ACCESS_CLIENT_SECRET="${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
-          ./cloudflared access ssh \
-            --hostname ssh.sukundev.my.id \
-            --client-id "$CLOUDFLARE_ACCESS_CLIENT_ID" \
-            --client-secret "$CLOUDFLARE_ACCESS_CLIENT_SECRET" \
-            -- ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes sukundev@ssh.sukundev.my.id "echo '✅ No browser login needed!' && uptime"
+          ./cloudflared access ssh --hostname ssh.sukundev.my.id -- ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes sukundev@ssh.sukundev.my.id "echo '✅ Connected!' && uptime"
