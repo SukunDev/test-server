@@ -1,4 +1,4 @@
-name: Deploy via SSH with Password Auth and Cloudflare Tunnel
+name: Deploy via SSH with Password through Cloudflared Tunnel
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Install Cloudflared
@@ -19,12 +19,12 @@ jobs:
           sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
           sudo chmod +x /usr/local/bin/cloudflared
 
-      - name: Setup Cloudflared Tunnel Credentials
+      - name: Save Cloudflared Tunnel Credentials
         run: |
           mkdir -p ~/.cloudflared
           echo '${{ secrets.CF_TUNNEL_CREDENTIALS }}' > ~/.cloudflared/cred.json
 
-      - name: Start Cloudflared Tunnel
+      - name: Start Cloudflared Tunnel to Server
         run: |
           nohup cloudflared tunnel --cred-file ~/.cloudflared/cred.json --url ssh://localhost:22 > cloudflared.log 2>&1 &
           sleep 5
@@ -32,6 +32,6 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: SSH using Username and Password
+      - name: SSH to Server via Password
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SSH_USERNAME }}@127.0.0.1 "echo 'Connected with password auth!' && uptime"
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${{ secrets.SSH_USERNAME }}@127.0.0.1 "echo 'Connected via tunnel!' && uptime"
