@@ -1,4 +1,4 @@
-name: Deploy via SSH with Cloudflare Tunnel
+name: Deploy via SSH with Cloudflare Tunnel (Service Token)
 
 on:
   push:
@@ -47,4 +47,4 @@ jobs:
 
       - name: SSH into Server via Cloudflare Tunnel
         run: |
-          ssh -vvv ssh.sukundev.my.id "echo '✅ Connected via GitHub Actions!' && uptime"
+          ssh ssh.sukundev.my.id "echo '✅ Connected via GitHub Actions!' && uptime"
