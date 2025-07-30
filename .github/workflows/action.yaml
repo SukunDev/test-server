@@ -49,4 +49,5 @@ jobs:
 
       - name: SSH into Server via Cloudflare Tunnel
         run: |
-          ssh ssh.sukundev.my.id "echo '✅ Connected via GitHub Actions!' && uptime"
+          ssh -vvv ssh.sukundev.my.id "uptime"
+
