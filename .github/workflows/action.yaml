@@ -1,4 +1,4 @@
-name: Deploy via SSH with Password through Cloudflared Tunnel
+name: SSH Deploy via Cloudflare Access Certificate Auth
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Install Cloudflared
@@ -19,19 +19,23 @@ jobs:
           sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
           sudo chmod +x /usr/local/bin/cloudflared
 
-      - name: Save Cloudflared Tunnel Credentials
+      - name: Setup Cloudflare Access Credentials
         run: |
           mkdir -p ~/.cloudflared
-          echo '${{ secrets.CF_TUNNEL_CREDENTIALS }}' > ~/.cloudflared/cred.json
+          cat > ~/.cloudflared/credentials.json <<EOF
+          {
+            "client_id": "${{ secrets.CF_ACCESS_CLIENT_ID }}",
+            "client_secret": "${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
+          }
+          EOF
 
-      - name: Start Cloudflared Tunnel to Server
+      - name: SSH into Server using Cloudflare Access
         run: |
-          nohup cloudflared tunnel --cred-file ~/.cloudflared/cred.json --url ssh://localhost:22 > cloudflared.log 2>&1 &
-          sleep 5
-
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-
-      - name: SSH to Server via Password
-        run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${{ secrets.SSH_USERNAME }}@127.0.0.1 "echo 'Connected via tunnel!' && uptime"
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/config <<EOF
+          Host ssh.sukundev.my.id
+            ProxyCommand cloudflared access ssh --hostname %h
+            User sukundev
+            StrictHostKeyChecking no
+          EOF
+          ssh ssh.sukundev.my.id "echo 'Connected via Cloudflare Access!' && uptime"
