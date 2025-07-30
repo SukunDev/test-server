@@ -21,8 +21,8 @@ jobs:
 
       - name: Run SSH through Cloudflare Tunnel
         run: |
-          export TUNNEL_SERVICE_TOKEN_ID="${{ secrets.CLOUDFLARE_TOKEN_ID }}"
-          export TUNNEL_SERVICE_TOKEN_SECRET="${{ secrets.CLOUDFLARE_TOKEN_SECRET }}"
+          export TUNNEL_SERVICE_TOKEN_ID="${{ secrets.CF_ACCESS_CLIENT_ID }}"
+          export TUNNEL_SERVICE_TOKEN_SECRET="${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
 
           # Start tunnel in background and get local port
           LOCAL_PORT=$(./cloudflared access ssh \
