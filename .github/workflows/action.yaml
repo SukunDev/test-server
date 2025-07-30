@@ -30,21 +30,17 @@ jobs:
           sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
           sudo chmod +x /usr/local/bin/cloudflared
 
-      - name: Setup Cloudflared Access Credentials
+      - name: Simpan Cloudflare Access Token
         run: |
           mkdir -p ~/.cloudflared
-          cat > ~/.cloudflared/credentials.json <<EOF
-          {
-            "client_id": "${{ secrets.CF_ACCESS_CLIENT_ID }}",
-            "client_secret": "${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
-          }
-          EOF
+          echo "${{ secrets.CF_ACCESS_TOKEN }}" > ~/.cloudflared/access_token
+          chmod 600 ~/.cloudflared/access_token
 
       - name: Configure SSH with Cloudflare Tunnel Proxy
         run: |
           cat > ~/.ssh/config <<EOF
           Host ssh.sukundev.my.id
-            ProxyCommand cloudflared access ssh --hostname %h
+            ProxyCommand cloudflared access ssh --hostname %h --token-file ~/.cloudflared/access_token
             IdentityFile ~/.ssh/id_rsa
             User sukundev
             StrictHostKeyChecking no
@@ -52,5 +48,5 @@ jobs:
           chmod 600 ~/.ssh/config
 
       - name: SSH into Server via Cloudflare Tunnel
-        run: | 
-          ssh ssh.sukundev.my.id "echo 'connected via GitHub Actions!' && uptime"
+        run: |
+          ssh ssh.sukundev.my.id "echo '✅ Connected via GitHub Actions!' && uptime"
